@@ -21,38 +21,52 @@ import com.fasterxml.jackson.core.sym.Name;
 @RequestMapping("/demo")
 
 public class AyshikController {
-	
+
+	 @Autowired
+	 ContactRepo contactRepo;
+
+	 @PostMapping("/addContacts")
+	 public Contact addContact(@RequestBody Contact contact){
+	 	if(contact.getEmail() == null || contact.getEmail().trim().isEmpty()) contact.setEmail("NA");
+		 contact = contactRepo.save(contact);
+	 	return contact;
+	 }
+
+	@GetMapping("/getAllcontacts")
+	public List<Contact> getAllcontacts(){
+		List<Contact> contacts= (List<Contact>) contactRepo.findAll();
+		return contacts;
+	}
+
+	  List<AyshikModel> models = new ArrayList<AyshikModel>();
+
+	  @GetMapping("/hello") public String helloworld() {
+
+	  return "Hello World!!"; }
+
+	  @GetMapping("/getAyshikModel") public AyshikModel getAyshikModel() {
+
+	  return new AyshikModel("Ayshik","BCA806", "Howrah"); }
+
+	  @GetMapping("/hello/{myName}") public String hello(@PathVariable(name =
+	  "myName", required = true) String name) {
+	  	return "Hello!! " + name; } //Sending data between URls
+
+	  @PostMapping("/hello") public AyshikModel addData(@RequestBody AyshikModel
+	  ayshikModel) {
+
+	  models.add(ayshikModel);
+
+	  return ayshikModel; }
+
+	  @GetMapping("/hello/search") public AyshikModel
+	  searchDataByName(@RequestParam(name = "name", required = false) String name)
+	  throws Exception {
+
+	  for(AyshikModel model : models) { if(model.getName().equalsIgnoreCase(name))
+	  { return model; } } throw new Exception("Could not Find!!"); }
+
 	/*
-	 * List<AyshikModel> models = new ArrayList<AyshikModel>();
-	 * 
-	 * @GetMapping("/hello") public String helloworld() {
-	 * 
-	 * return "Hello World!!"; }
-	 * 
-	 * @GetMapping("/getAyshikModel") public AyshikModel getAyshikModel() {
-	 * 
-	 * return new AyshikModel("Ayshik","BCA806", "Howrah"); }
-	 * 
-	 * @GetMapping("/hello/{myName}") public String hello(@PathVariable(name =
-	 * "myName", required = true) String name) {
-	 * 
-	 * return "Hello!! " + name; } //Sending data between URls
-	 * 
-	 * @PostMapping("/hello") public AyshikModel addData(@RequestBody AyshikModel
-	 * ayshikModel) {
-	 * 
-	 * models.add(ayshikModel);
-	 * 
-	 * return ayshikModel; }
-	 * 
-	 * @GetMapping("/hello/search") public AyshikModel
-	 * searchDataByName(@RequestParam(name = "name", required = false) String name)
-	 * throws Exception {
-	 * 
-	 * for(AyshikModel model : models) { if(model.getName().equalsIgnoreCase(name))
-	 * { return model; } } throw new Exception("Could not Find!!"); }
-	 */
-	
 	@Autowired
 	StudentRepo studentRepo;
 	
@@ -74,6 +88,6 @@ public class AyshikController {
 		
 		return studentRepo.findByAddress(add);
 	}
-	
+	*/
 	
 }
