@@ -1,12 +1,13 @@
 package com.ayshiktest;
 
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import javax.websocket.server.PathParam;
-
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.sym.Name;
-
+import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/demo")
 
@@ -25,6 +25,48 @@ public class AyshikController {
 	 @Autowired
 	 ContactRepo contactRepo;
 
+	@PostMapping("/upload")
+	public List<Contact> fileRead(@RequestParam("file") MultipartFile file) {
+
+		List<ContactCsv> contacts = new ArrayList<>();
+		List<Contact> contactsList = new ArrayList<>();
+		if (!file.isEmpty()) {
+			try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+
+				// create csv bean reader
+				CsvToBean<Object> csvToBean = new CsvToBeanBuilder<>(reader)
+						.withType(ContactCsv.class)
+						.withIgnoreLeadingWhiteSpace(true)
+						.build();
+
+				// convert `CsvToBean` object to list of users
+				List<Object> cons = csvToBean.parse();
+
+				for (Object con : cons)
+				{
+					ContactCsv contact = (ContactCsv) con;
+					contacts.add(contact);
+					String phoneNum = contact.getNumber().replaceAll("\\D+","");
+					Contact contactDb = new Contact(contact.getFirstName(), contact.getLastName(), phoneNum.trim(), contact.getEmail());
+					contactsList.add(contactDb);
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			contactsList = (List<Contact>) contactRepo.saveAll(contactsList);
+		}
+		return contactsList;
+	}
+
+	@GetMapping("/getAllContacts")
+	public List<Contact> getAllContacts() {
+
+		return (List<Contact>) contactRepo.findAll();
+	}
+
+
+
+	 /*
 	 @PostMapping("/addContacts")
 	 public Contact addContact(@RequestBody Contact contact){
 	 	if(contact.getEmail() == null || contact.getEmail().trim().isEmpty()) contact.setEmail("NA");

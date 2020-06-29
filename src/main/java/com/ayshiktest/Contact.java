@@ -23,10 +23,10 @@ public class Contact implements Serializable {
     @Column(name = "last_name")
     private String lastName;
 
-    @Column(name = "phone_number", length = 10, unique = true)
-    private long phoneNumber;
+    @Column(name = "phone_number")
+    private String phoneNumber;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "email")
     private String email = "NA";
 
     public static long getSerialVersionUID() {
@@ -57,11 +57,11 @@ public class Contact implements Serializable {
         this.lastName = lastName;
     }
 
-    public long getPhoneNumber() {
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(long phoneNumber) {
+    public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
@@ -70,6 +70,15 @@ public class Contact implements Serializable {
     }
 
     public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Contact() { }
+
+    public Contact(String firstName, String lastName, String phoneNumber, String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
         this.email = email;
     }
 }
