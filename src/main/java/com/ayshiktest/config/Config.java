@@ -1,5 +1,6 @@
 package com.ayshiktest.config;
 
+import org.dozer.DozerBeanMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,4 +24,8 @@ public class Config {
 				.build();
 	}
 
+	@Bean
+	DozerBeanMapper mapper() {
+		return new DozerBeanMapper();
+	}
 }
