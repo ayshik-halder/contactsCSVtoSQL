@@ -1,5 +1,7 @@
 package com.ayshiktest.entity;
 
+import org.dozer.Mapping;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -80,5 +82,16 @@ public class Contact implements Serializable {
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
         this.email = email;
+    }
+
+    @Override
+    public String toString() {
+        return "Contact{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", email='" + email + '\'' +
+                '}';
     }
 }

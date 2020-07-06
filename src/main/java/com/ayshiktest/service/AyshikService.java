@@ -3,6 +3,7 @@ package com.ayshiktest.service;
 import com.ayshiktest.entity.Contact;
 import com.ayshiktest.model.ContactCsv;
 import com.ayshiktest.repo.ContactRepo;
+import com.ayshiktest.util.AyshikUtil;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +22,13 @@ import java.util.List;
 @Transactional
 public class AyshikService implements IAyshikService {
 
-
-
     @Autowired
     ContactRepo contactRepo;
 
+    @Autowired
+    AyshikUtil util;
+
+    @Override
     public List<Contact> fileRead(@RequestParam("file") MultipartFile file) {
 
         List<ContactCsv> contacts = new ArrayList<>();
@@ -41,19 +44,57 @@ public class AyshikService implements IAyshikService {
 
                 // convert `CsvToBean` object to list of users
                 List<Object> cons = csvToBean.parse();
+                contactsList = util.mapList(cons, Contact.class);
 
-                for (int i = 0; i< 30;i ++)   {
-                    ContactCsv contact = (ContactCsv) cons.get(i);            contacts.add(contact);
-                    String phoneNum = contact.getNumber().replaceAll("\\D+","");
-                    Contact contactDb = new Contact(contact.getFirstName(), contact.getLastName(), phoneNum.trim(), contact.getEmail());
-                    contactsList.add(contactDb);
-                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            contactsList.forEach(contact -> System.out.println(contact.toString()));
             contactsList = (List<Contact>) contactRepo.saveAll(contactsList);
         }
         return  contactsList;
+    }
+
+    @Override
+    public List<Contact> getAllContacts() {
+        return (List<Contact>) contactRepo.findAll();
+    }
+
+    @Override
+    public Contact addContact(Contact contact) {
+        System.out.println(contact.toString());
+        return contactRepo.save(contact);
+    }
+
+    @Override
+    public List<Contact> getContactsByFirstName(String firstName) {
+        return contactRepo.findByFirstNameIgnoreCase(firstName);
+    }
+
+    @Override
+    public List<Contact> getContactsByLastName(String lastName) {
+        return contactRepo.findByLastNameIgnoreCase(lastName);
+    }
+
+    @Override
+    public List<Contact> getContactsByEmail(String email) {
+        return contactRepo.findByEmailIgnoreCase(email);
+    }
+
+    @Override
+    public void deleteAllTemp() {
+
+        List<Contact> list1 = contactRepo.findByLastNameIgnoreCase("Da");
+        List<Contact> list2 = contactRepo.findByFirstNameIgnoreCase("WorlPOOL");
+        List<Contact> list3 = contactRepo.findByLastNameAndFirstNameAllIgnoreCase("WashING", "WorlPOOL");
+        List<Contact> list4 = contactRepo.findByLastNameOrFirstNameAllIgnoreCase("BanerJEE", "WorlPOOL");
+        List<Contact> list5 = contactRepo.findByEmailIgnoreCase("SANDIP@testEmail.COM");
+        List<Contact> list6 = contactRepo.findByEmailContainingIgnoreCase("email");
+        List<Contact> list7 = contactRepo.findByFirstNameContainingIgnoreCase("z");
+        List<Contact> list8 = contactRepo.findByLastNameContainingIgnoreCase("ER");
+
+
+
+
+        contactRepo.deleteAll();
     }
 }

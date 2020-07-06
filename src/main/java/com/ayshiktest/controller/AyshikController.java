@@ -8,10 +8,13 @@ import com.ayshiktest.entity.Contact;
 import com.ayshiktest.model.ContactCsv;
 import com.ayshiktest.repo.ContactRepo;
 import com.ayshiktest.service.IAyshikService;
-import com.github.dozermapper.core.Mapper;
+import com.ayshiktest.util.AyshikUtil;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import org.dozer.DozerBeanMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +30,10 @@ import org.springframework.web.multipart.MultipartFile;
 public class AyshikController {
 
 	@Autowired
-	private Mapper mapper;
+	private DozerBeanMapper mapper;
+
+	@Autowired
+	AyshikUtil util;
 
 	@Autowired
 	IAyshikService ayshikService;
@@ -38,23 +44,39 @@ public class AyshikController {
 	@PostMapping("/upload")
 	public List<ContactCsv> fileRead(@RequestParam("file") MultipartFile file) {
 
-		List<ContactCsv> contacts = new ArrayList<>();
 		List<Contact> contactsList = ayshikService.fileRead(file);
-		contactsList.stream().forEach(con -> {
-			ContactCsv conCsv = new ContactCsv(con.getFirstName(), con.getLastName(), con.getPhoneNumber(), con.getEmail());
-			contacts.add(conCsv);
-		});
-
+		List<ContactCsv> contacts = util.mapList(contactsList, ContactCsv.class);
 		return contacts;
 	}
 
 	@GetMapping("/getAllContacts")
-	public List<Contact> getAllContacts() {
-
-		return (List<Contact>) contactRepo.findAll();
+	public List<ContactCsv> getAllContacts() {
+		return util.mapList(ayshikService.getAllContacts(), ContactCsv.class);
 	}
 
+	@PostMapping("/addContact")
+	public ContactCsv addContact(@RequestBody ContactCsv contactCsv) {
+		Contact contact = mapper.map(contactCsv, Contact.class);
+		contact = ayshikService.addContact(contact);
+		contactCsv = mapper.map(contact, ContactCsv.class);
+		return contactCsv;
+	}
 
+	@GetMapping("/getContactsByFirstName")
+	public List<ContactCsv> getContactsByFirstName(@RequestParam("firstName") String firstName) {
+		return util.mapList(ayshikService.getContactsByFirstName(firstName), ContactCsv.class);
+	}
+
+	@GetMapping("/getContactsByLastName")
+	public List<ContactCsv> getContactsByLastName(@RequestParam("lastName") String lastName) {
+		return util.mapList(ayshikService.getContactsByLastName(lastName), ContactCsv.class);
+	}
+
+	@GetMapping("/deleteAllTemp")
+	public ResponseEntity<Void> deleteAllTemp() {
+		ayshikService.deleteAllTemp();
+		return new ResponseEntity<Void>(HttpStatus.valueOf(204));
+	}
 
 	 /*
 	 @PostMapping("/addContacts")
