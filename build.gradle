@@ -19,6 +19,8 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	compile 'io.springfox:springfox-swagger2:2.9.2'
 	compile 'io.springfox:springfox-swagger-ui:2.9.2'
+	compile group: 'com.github.dozermapper', name: 'dozer-core', version: '6.5.0'
+	compile group: 'com.github.dozermapper', name: 'dozer-spring-boot-starter', version: '6.5.0'
 	runtimeOnly 'mysql:mysql-connector-java'	
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'

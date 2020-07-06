@@ -1,7 +1,8 @@
-package com.ayshiktest;
+package com.ayshiktest.repo;
 
 import java.util.List;
 
+import com.ayshiktest.entity.Student;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

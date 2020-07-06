@@ -1,10 +1,14 @@
-package com.ayshiktest;
+package com.ayshiktest.controller;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import com.ayshiktest.entity.Contact;
+import com.ayshiktest.model.ContactCsv;
+import com.ayshiktest.repo.ContactRepo;
+import com.ayshiktest.service.IAyshikService;
+import com.github.dozermapper.core.Mapper;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,40 +26,26 @@ import org.springframework.web.multipart.MultipartFile;
 
 public class AyshikController {
 
+	@Autowired
+	private Mapper mapper;
+
+	@Autowired
+	IAyshikService ayshikService;
+
 	 @Autowired
-	 ContactRepo contactRepo;
+     ContactRepo contactRepo;
 
 	@PostMapping("/upload")
-	public List<Contact> fileRead(@RequestParam("file") MultipartFile file) {
+	public List<ContactCsv> fileRead(@RequestParam("file") MultipartFile file) {
 
 		List<ContactCsv> contacts = new ArrayList<>();
-		List<Contact> contactsList = new ArrayList<>();
-		if (!file.isEmpty()) {
-			try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+		List<Contact> contactsList = ayshikService.fileRead(file);
+		contactsList.stream().forEach(con -> {
+			ContactCsv conCsv = new ContactCsv(con.getFirstName(), con.getLastName(), con.getPhoneNumber(), con.getEmail());
+			contacts.add(conCsv);
+		});
 
-				// create csv bean reader
-				CsvToBean<Object> csvToBean = new CsvToBeanBuilder<>(reader)
-						.withType(ContactCsv.class)
-						.withIgnoreLeadingWhiteSpace(true)
-						.build();
-
-				// convert `CsvToBean` object to list of users
-				List<Object> cons = csvToBean.parse();
-
-				for (Object con : cons)
-				{
-					ContactCsv contact = (ContactCsv) con;
-					contacts.add(contact);
-					String phoneNum = contact.getNumber().replaceAll("\\D+","");
-					Contact contactDb = new Contact(contact.getFirstName(), contact.getLastName(), phoneNum.trim(), contact.getEmail());
-					contactsList.add(contactDb);
-				}
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-			contactsList = (List<Contact>) contactRepo.saveAll(contactsList);
-		}
-		return contactsList;
+		return contacts;
 	}
 
 	@GetMapping("/getAllContacts")

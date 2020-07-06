@@ -1,4 +1,4 @@
-package com.ayshiktest;
+package com.ayshiktest.entity;
 
 import javax.persistence.*;
 import java.io.Serializable;

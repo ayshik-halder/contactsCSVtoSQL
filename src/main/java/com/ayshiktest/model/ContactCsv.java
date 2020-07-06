@@ -1,4 +1,4 @@
-package com.ayshiktest;
+package com.ayshiktest.model;
 
 
 import com.opencsv.bean.CsvBindByName;
@@ -46,6 +46,14 @@ public class ContactCsv {
     }
 
     public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public ContactCsv() {}
+    public ContactCsv(String firstName, String lastName, String number, String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.number = number;
         this.email = email;
     }
 

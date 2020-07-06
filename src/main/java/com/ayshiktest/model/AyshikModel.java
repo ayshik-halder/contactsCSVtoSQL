@@ -1,4 +1,4 @@
-package com.ayshiktest;
+package com.ayshiktest.model;
 
 public class AyshikModel {
 	
