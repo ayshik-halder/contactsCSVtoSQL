@@ -6,6 +6,8 @@ import org.dozer.Mapping;
 
 public class ContactCsv {
 
+    private long id;
+
     @CsvBindByName(column = "Given Name")
     private String firstName;
 
@@ -14,10 +16,18 @@ public class ContactCsv {
 
     @Mapping("phoneNumber")
     @CsvBindByName(column = "Phone 1 - Value")
-    private String number;
+    private String phoneNumber;
 
     @CsvBindByName(column = "E-mail 1 - Value")
     private String email;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getFirstName() {
         return firstName;
@@ -35,12 +45,12 @@ public class ContactCsv {
         this.lastName = lastName;
     }
 
-    public String  getNumber() {
-        return number;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setNumber(String number) {
-        this.number = number;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getEmail() {
@@ -52,10 +62,10 @@ public class ContactCsv {
     }
 
     public ContactCsv() {}
-    public ContactCsv(String firstName, String lastName, String number, String email) {
+    public ContactCsv(String firstName, String lastName, String phoneNumber, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.number = number;
+        this.phoneNumber = phoneNumber;
         this.email = email;
     }
 
@@ -64,7 +74,7 @@ public class ContactCsv {
         return "Contact{" +
                 "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", number=" + number +
+                ", number=" + phoneNumber +
                 ", email='" + email + '\'' +
                 '}';
     }

@@ -4,6 +4,7 @@ import com.ayshiktest.entity.Contact;
 import com.ayshiktest.model.ContactCsv;
 import com.ayshiktest.repo.ContactRepo;
 import com.ayshiktest.util.AyshikUtil;
+import com.google.common.base.Strings;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -66,6 +68,17 @@ public class AyshikService implements IAyshikService {
     }
 
     @Override
+    public Contact updateContact(Contact contact) {
+        Contact contactFromDb = contactRepo.findById(contact.getId());
+        if (!Strings.isNullOrEmpty(contact.getFirstName())) contactFromDb.setFirstName(contact.getFirstName());
+        if (!Strings.isNullOrEmpty(contact.getLastName())) contactFromDb.setLastName(contact.getLastName());
+        if (!Strings.isNullOrEmpty(contact.getEmail())) contactFromDb.setEmail(contact.getEmail());
+        if (!Strings.isNullOrEmpty(contact.getPhoneNumber())) contactFromDb.setPhoneNumber(contact.getPhoneNumber());
+        contactFromDb = contactRepo.save(contactFromDb);
+        return contactFromDb;
+    }
+
+    @Override
     public List<Contact> getContactsByFirstName(String firstName) {
         return contactRepo.findByFirstNameIgnoreCase(firstName);
     }
@@ -91,10 +104,28 @@ public class AyshikService implements IAyshikService {
         List<Contact> list6 = contactRepo.findByEmailContainingIgnoreCase("email");
         List<Contact> list7 = contactRepo.findByFirstNameContainingIgnoreCase("z");
         List<Contact> list8 = contactRepo.findByLastNameContainingIgnoreCase("ER");
-
-
-
-
+      
         contactRepo.deleteAll();
+    }
+
+    @Override
+    public void deleteContact(long id) {
+        contactRepo.deleteById(id);
+    }
+
+    @Override
+    public Contact getContact(long id) {
+        return contactRepo.findById(id);
+    }
+
+    @Override
+    public List<Contact> search(String value) {
+
+        List<Contact> contactsEmail = contactRepo.findByEmailContainingIgnoreCase(value);
+        contactsEmail.addAll(contactRepo.findByFirstNameContainingIgnoreCase(value));
+        contactsEmail.addAll(contactRepo.findByLastNameContainingIgnoreCase(value));
+        contactsEmail.addAll(contactRepo.findByPhoneNumberContainingIgnoreCase(value));
+        return contactsEmail;
+
     }
 }

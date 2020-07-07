@@ -10,8 +10,12 @@ public interface IAyshikService {
     List<Contact> fileRead(@RequestParam("file") MultipartFile file);
     List<Contact> getAllContacts();
     Contact addContact(Contact contact);
+    Contact updateContact(Contact contact);
     List<Contact> getContactsByFirstName(String firstName);
     List<Contact> getContactsByLastName(String lastName);
     List<Contact> getContactsByEmail(String email);
     void deleteAllTemp();
+    void deleteContact(long id);
+    Contact getContact(long id);
+    List<Contact> search(String value);
 }
