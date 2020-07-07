@@ -14,6 +14,7 @@ public class ContactCsv {
     @CsvBindByName(column = "Family Name")
     private String lastName;
 
+    @Mapping("phoneNumber")
     @CsvBindByName(column = "Phone 1 - Value")
     private String phoneNumber;
 

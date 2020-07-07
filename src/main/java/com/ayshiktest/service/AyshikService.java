@@ -104,7 +104,7 @@ public class AyshikService implements IAyshikService {
         List<Contact> list6 = contactRepo.findByEmailContainingIgnoreCase("email");
         List<Contact> list7 = contactRepo.findByFirstNameContainingIgnoreCase("z");
         List<Contact> list8 = contactRepo.findByLastNameContainingIgnoreCase("ER");
-
+      
         contactRepo.deleteAll();
     }
 
@@ -126,5 +126,6 @@ public class AyshikService implements IAyshikService {
         contactsEmail.addAll(contactRepo.findByLastNameContainingIgnoreCase(value));
         contactsEmail.addAll(contactRepo.findByPhoneNumberContainingIgnoreCase(value));
         return contactsEmail;
+
     }
 }
