@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface ContactRepo extends CrudRepository<Contact, Long> {
 
+    Contact findById(long id);
     List<Contact> findByLastNameIgnoreCase(String lastName);
     List<Contact> findByFirstNameIgnoreCase(String firstName);
     List<Contact> findByLastNameAndFirstNameAllIgnoreCase(String firstname, String lastname);
@@ -17,4 +18,5 @@ public interface ContactRepo extends CrudRepository<Contact, Long> {
     List<Contact> findByEmailContainingIgnoreCase(String email);
     List<Contact> findByFirstNameContainingIgnoreCase(String firstName);
     List<Contact> findByLastNameContainingIgnoreCase(String lastName);
+    List<Contact> findByPhoneNumberContainingIgnoreCase(String number);
 }

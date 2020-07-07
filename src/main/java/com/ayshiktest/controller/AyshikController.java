@@ -15,18 +15,12 @@ import org.dozer.DozerBeanMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/demo")
-
+@CrossOrigin
 public class AyshikController {
 
 	@Autowired
@@ -42,11 +36,16 @@ public class AyshikController {
      ContactRepo contactRepo;
 
 	@PostMapping("/upload")
-	public List<ContactCsv> fileRead(@RequestParam("file") MultipartFile file) {
+	public List<ContactCsv> fileRead(@RequestBody MultipartFile file) {
 
 		List<Contact> contactsList = ayshikService.fileRead(file);
 		List<ContactCsv> contacts = util.mapList(contactsList, ContactCsv.class);
 		return contacts;
+	}
+
+	@GetMapping("/getContact/{id}")
+	public ContactCsv getContact(@PathVariable long id) {
+		return mapper.map(ayshikService.getContact(id), ContactCsv.class);
 	}
 
 	@GetMapping("/getAllContacts")
@@ -72,12 +71,30 @@ public class AyshikController {
 		return util.mapList(ayshikService.getContactsByLastName(lastName), ContactCsv.class);
 	}
 
-	@GetMapping("/deleteAllTemp")
+	@DeleteMapping("/deleteAllTemp")
 	public ResponseEntity<Void> deleteAllTemp() {
 		ayshikService.deleteAllTemp();
 		return new ResponseEntity<Void>(HttpStatus.valueOf(204));
 	}
 
+	@DeleteMapping("/deleteContact/{id}")
+	public ResponseEntity<Void> deleteContact(@PathVariable long id) {
+		ayshikService.deleteContact(id);
+		return new ResponseEntity<Void>(HttpStatus.valueOf(204));
+	}
+
+	@PutMapping("/updateContact")
+	public ContactCsv updateContact(@RequestBody ContactCsv contactCsv) {
+		Contact contact = mapper.map(contactCsv, Contact.class);
+		contact = ayshikService.updateContact(contact);
+		contactCsv = mapper.map(contact, ContactCsv.class);
+		return contactCsv;
+	}
+
+	@GetMapping("/search")
+	public List<ContactCsv> search(@RequestParam("value") String value) {
+		return util.mapList(ayshikService.search(value), ContactCsv.class);
+	}
 	 /*
 	 @PostMapping("/addContacts")
 	 public Contact addContact(@RequestBody Contact contact){
