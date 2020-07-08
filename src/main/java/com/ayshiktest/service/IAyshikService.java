@@ -1,6 +1,7 @@
 package com.ayshiktest.service;
 
 import com.ayshiktest.entity.Contact;
+import com.ayshiktest.exception.ResourceNotFoundException;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,6 @@ public interface IAyshikService {
     List<Contact> getContactsByEmail(String email);
     void deleteAllTemp();
     void deleteContact(long id);
-    Contact getContact(long id);
+    Contact getContact(long id) throws ResourceNotFoundException;
     List<Contact> search(String value);
 }

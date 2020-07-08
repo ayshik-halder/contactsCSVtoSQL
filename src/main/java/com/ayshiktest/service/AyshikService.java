@@ -1,6 +1,7 @@
 package com.ayshiktest.service;
 
 import com.ayshiktest.entity.Contact;
+import com.ayshiktest.exception.ResourceNotFoundException;
 import com.ayshiktest.model.ContactCsv;
 import com.ayshiktest.repo.ContactRepo;
 import com.ayshiktest.util.AyshikUtil;
@@ -114,8 +115,10 @@ public class AyshikService implements IAyshikService {
     }
 
     @Override
-    public Contact getContact(long id) {
-        return contactRepo.findById(id);
+    public Contact getContact(long id) throws ResourceNotFoundException {
+        Contact con = contactRepo.findById(id);
+        if (con == null) throw new ResourceNotFoundException("No contacts found for id : " + id);
+        return con;
     }
 
     @Override
