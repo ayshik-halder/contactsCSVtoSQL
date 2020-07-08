@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ayshiktest.entity.Contact;
+import com.ayshiktest.exception.ResourceNotFoundException;
 import com.ayshiktest.model.ContactCsv;
 import com.ayshiktest.repo.ContactRepo;
 import com.ayshiktest.service.IAyshikService;
@@ -45,7 +46,7 @@ public class AyshikController {
 	}
 
 	@GetMapping("/getContact/{id}")
-	public ContactCsv getContact(@PathVariable long id) {
+	public ContactCsv getContact(@PathVariable long id) throws ResourceNotFoundException {
 		return mapper.map(ayshikService.getContact(id), ContactCsv.class);
 	}
 
