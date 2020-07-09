@@ -22,7 +22,7 @@ dependencies {
 	compile group: 'com.github.dozermapper', name: 'dozer-core', version: '6.5.0'
 	compile group: 'com.github.dozermapper', name: 'dozer-spring-boot-starter', version: '6.5.0'
 	compile group: 'net.sf.dozer', name: 'dozer', version: '5.5.1'
-	runtimeOnly 'mysql:mysql-connector-java'	
+	runtimeOnly 'com.h2database:h2'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
