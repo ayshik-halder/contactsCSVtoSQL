@@ -24,9 +24,22 @@ public class RestResponseEntityExceptionHandler  {
         return error;
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(value = HttpStatus.CONFLICT)
+    public @ResponseBody
+    ExceptionResponse handleConflictError(final ConflictException exception,
+                                             final HttpServletRequest request) {
+
+        ExceptionResponse error = new ExceptionResponse();
+        error.setErrorMessage(exception.getMessage());
+        error.callerURL(request.getRequestURI());
+
+        return error;
+    }
+
+    @ExceptionHandler(CustomGeneralException.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-    public @ResponseBody ExceptionResponse handleException(final Exception exception,
+    public @ResponseBody ExceptionResponse handleException(final CustomGeneralException exception,
                                                            final HttpServletRequest request) {
 
         ExceptionResponse error = new ExceptionResponse();

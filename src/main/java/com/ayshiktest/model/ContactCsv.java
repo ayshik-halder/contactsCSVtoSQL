@@ -1,6 +1,7 @@
 package com.ayshiktest.model;
 
 
+import com.google.common.base.Strings;
 import com.opencsv.bean.CsvBindByName;
 import org.dozer.Mapping;
 
@@ -77,5 +78,12 @@ public class ContactCsv {
                 ", number=" + phoneNumber +
                 ", email='" + email + '\'' +
                 '}';
+    }
+
+    public boolean allPropertiesNull() {
+        return (Strings.isNullOrEmpty(this.firstName)
+                && Strings.isNullOrEmpty(this.lastName)
+                && Strings.isNullOrEmpty(this.phoneNumber)
+                && Strings.isNullOrEmpty(this.email));
     }
 }
