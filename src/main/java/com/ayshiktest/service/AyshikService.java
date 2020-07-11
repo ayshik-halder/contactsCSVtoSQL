@@ -143,6 +143,15 @@ public class AyshikService implements IAyshikService {
     }
 
     @Override
+    public void deleteMultiple(List<Contact> contacts) throws CustomGeneralException {
+        try {
+            contactRepo.deleteAll(contacts);
+        } catch (RuntimeException ex) {
+            throw new CustomGeneralException("Sql Exception happened!");
+        }
+    }
+
+    @Override
     public void deleteContact(long id) throws ResourceNotFoundException {
         try {
             contactRepo.deleteById(id);
@@ -162,11 +171,16 @@ public class AyshikService implements IAyshikService {
     @Override
     public List<Contact> search(String value) {
 
+        List<Contact> contacts = new ArrayList<>();
         List<Contact> contactsEmail = contactRepo.findByEmailContainingIgnoreCase(value);
         contactsEmail.addAll(contactRepo.findByFirstNameContainingIgnoreCase(value));
         contactsEmail.addAll(contactRepo.findByLastNameContainingIgnoreCase(value));
         contactsEmail.addAll(contactRepo.findByPhoneNumberContainingIgnoreCase(value));
-        return contactsEmail;
+        for (Contact con : contactsEmail) {
+            if(!isDuplicate(contacts, con))
+                contacts.add(con);
+        }
+        return contacts;
 
     }
 }

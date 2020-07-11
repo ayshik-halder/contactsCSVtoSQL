@@ -1,7 +1,5 @@
 package com.ayshiktest.controller;
 
-import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.ayshiktest.entity.Contact;
@@ -12,8 +10,6 @@ import com.ayshiktest.model.ContactCsv;
 import com.ayshiktest.repo.ContactRepo;
 import com.ayshiktest.service.IAyshikService;
 import com.ayshiktest.util.AyshikUtil;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
 import org.dozer.DozerBeanMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -101,6 +97,14 @@ public class AyshikController {
 	public List<ContactCsv> search(@RequestParam("value") String value) {
 		return util.mapList(ayshikService.search(value), ContactCsv.class);
 	}
+
+	@DeleteMapping("/deleteMultiple")
+	public ResponseEntity<Void> deleteMultiple(@RequestParam List<Long> contactIds) throws CustomGeneralException {
+		List<Contact> cons = (List<Contact>) contactRepo.findAllById(contactIds);
+		ayshikService.deleteMultiple(cons);
+		return new ResponseEntity<Void>(HttpStatus.valueOf(204));
+	}
+
 	 /*
 	 @PostMapping("/addContacts")
 	 public Contact addContact(@RequestBody Contact contact){

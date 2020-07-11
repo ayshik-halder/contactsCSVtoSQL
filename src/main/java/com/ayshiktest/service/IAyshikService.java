@@ -18,6 +18,7 @@ public interface IAyshikService {
     List<Contact> getContactsByLastName(String lastName);
     List<Contact> getContactsByEmail(String email);
     void deleteAllTemp();
+    void deleteMultiple(List<Contact> contacts) throws CustomGeneralException;
     void deleteContact(long id) throws ResourceNotFoundException;
     Contact getContact(long id) throws ResourceNotFoundException;
     List<Contact> search(String value);
