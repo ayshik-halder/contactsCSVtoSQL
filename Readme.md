@@ -59,3 +59,6 @@ This project is licensed under the Apache2.0 License - see the [LICENSE](LICENSE
 
 Email us at <halderayshik@gmail.com> for support or feedback.
 A star on the repository is appreciated.
+
+>Copyright 2020 Ayshik Halder
+-Licensed under the Apache License, Version 2.0
