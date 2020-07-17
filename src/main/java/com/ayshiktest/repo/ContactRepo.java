@@ -18,5 +18,4 @@ public interface ContactRepo extends CrudRepository<Contact, Long> {
     List<Contact> findByEmailContainingIgnoreCase(String email);
     List<Contact> findByFirstNameContainingIgnoreCase(String firstName);
     List<Contact> findByLastNameContainingIgnoreCase(String lastName);
-    List<Contact> findByPhoneNumberContainingIgnoreCase(String number);
 }
