@@ -67,6 +67,7 @@ public class AyshikService implements IAyshikService {
         }
         //Saving To Db
         for (ContactCsv conCsv : contacts) {
+            System.out.println(conCsv.toString());
             Contact con = mapper.map(conCsv, Contact.class);
             con = contactRepo.save(con);
 
@@ -99,7 +100,7 @@ public class AyshikService implements IAyshikService {
             int max = phn2s.length > 2 ? 2 : phn2s.length;
             for (int i = 0; i < max; i++) {
                 if(phn2s[i] != null) phn2s[i] = phn2s[i].trim();
-                phoneNumberList.add(new PhoneNumber(con, phn2s[i], conCsv.getPhoneNumberType1()));
+                phoneNumberList.add(new PhoneNumber(con, phn2s[i], conCsv.getPhoneNumberType2()));
             }
         }
 
