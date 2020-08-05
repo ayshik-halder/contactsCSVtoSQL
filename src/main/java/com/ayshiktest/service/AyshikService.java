@@ -1,11 +1,15 @@
 package com.ayshiktest.service;
 
 import com.ayshiktest.entity.Contact;
+import com.ayshiktest.entity.PhoneNumber;
 import com.ayshiktest.exception.ConflictException;
 import com.ayshiktest.exception.CustomGeneralException;
 import com.ayshiktest.exception.ResourceNotFoundException;
 import com.ayshiktest.model.ContactCsv;
+import com.ayshiktest.model.ContactModel;
+import com.ayshiktest.model.PhoneNumberModel;
 import com.ayshiktest.repo.ContactRepo;
+import com.ayshiktest.repo.PhoneNumberRepo;
 import com.ayshiktest.util.AyshikUtil;
 import com.google.common.base.Strings;
 import com.opencsv.bean.CsvToBean;
@@ -33,14 +37,16 @@ public class AyshikService implements IAyshikService {
     ContactRepo contactRepo;
 
     @Autowired
+    PhoneNumberRepo phoneNumberRepo;
+
+    @Autowired
     AyshikUtil util;
 
     @Override
-    public List<Contact> fileRead(@RequestParam("file") MultipartFile file) throws CustomGeneralException {
+    public List<ContactModel> fileRead(@RequestParam("file") MultipartFile file) throws CustomGeneralException {
 
         List<ContactCsv> contacts = new ArrayList<>();
-        List<Contact> contactsList = new ArrayList<>();
-        List<Contact> toSave = new ArrayList<>();
+        List<ContactModel> toReturn = new ArrayList<>();
         if (!file.isEmpty()) {
             try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
 
@@ -52,25 +58,53 @@ public class AyshikService implements IAyshikService {
 
                 // convert `CsvToBean` object to list of users
                 List<Object> cons = csvToBean.parse();
-//                contactsList = util.mapList(cons, Contact.class);
-                for (Object con : cons) {
-                    Contact contact = mapper.map(con, Contact.class);
-                    if(!isDuplicate(contactsList, contact))
-                        contactsList.add(mapper.map(con, Contact.class));
-                }
+                contacts = util.mapList(cons, ContactCsv.class);
+
             } catch (Exception ex) {
                 ex.printStackTrace();
                 throw new CustomGeneralException(ex.getMessage());
             }
-            List<Contact> fromDb = (List<Contact>) contactRepo.findAll();
-
-            for (Contact con : contactsList) {
-                if(!isDuplicate(fromDb, con))
-                    toSave.add(con);
-            }
-            contactsList = (List<Contact>) contactRepo.saveAll(toSave);
         }
-        return  contactsList;
+        //Saving To Db
+        for (ContactCsv conCsv : contacts) {
+            System.out.println(conCsv.toString());
+            Contact con = mapper.map(conCsv, Contact.class);
+            con = contactRepo.save(con);
+
+            List<PhoneNumber> phoneNumberList = convertPhnNum(conCsv, con);
+            phoneNumberList = (List<PhoneNumber>) phoneNumberRepo.saveAll(phoneNumberList);
+
+            ContactModel cm = mapper.map(con, ContactModel.class);
+            List<PhoneNumberModel> pnm = util.mapList(phoneNumberList, PhoneNumberModel.class);
+            cm.setPhoneNumber(pnm);
+            toReturn.add(cm);
+        }
+
+        return  toReturn;
+    }
+
+    private List<PhoneNumber> convertPhnNum(ContactCsv conCsv, Contact con) {
+        List<PhoneNumber> phoneNumberList = new ArrayList<>();
+
+        if (!Strings.isNullOrEmpty(conCsv.getPhoneNumber1())) {
+            String[] phn1s = conCsv.getPhoneNumber1().split(":::");
+            int max = phn1s.length > 2 ? 2 : phn1s.length;
+            for (int i = 0; i < max; i++) {
+                if(phn1s[i] != null) phn1s[i] = phn1s[i].trim();
+                phoneNumberList.add(new PhoneNumber(con, phn1s[i], conCsv.getPhoneNumberType1()));
+            }
+        }
+
+        if (!Strings.isNullOrEmpty(conCsv.getPhoneNumber2())) {
+            String[] phn2s = conCsv.getPhoneNumber2().split(":::");
+            int max = phn2s.length > 2 ? 2 : phn2s.length;
+            for (int i = 0; i < max; i++) {
+                if(phn2s[i] != null) phn2s[i] = phn2s[i].trim();
+                phoneNumberList.add(new PhoneNumber(con, phn2s[i], conCsv.getPhoneNumberType2()));
+            }
+        }
+
+        return phoneNumberList;
     }
 
     private boolean isDuplicate(List<Contact> elements, Contact element) {
@@ -82,105 +116,128 @@ public class AyshikService implements IAyshikService {
 
     private boolean allPropertiesEqual(Contact c1, Contact c2) {
         return (c1.getFirstName().equals(c2.getFirstName()) && c1.getLastName().equals(c2.getLastName())
-                && c1.getPhoneNumber().equals(c2.getPhoneNumber()) && c1.getEmail().equals(c2.getEmail()));
+                && c1.getEmail().equals(c2.getEmail()));
     }
 
     @Override
-    public List<Contact> getAllContacts() {
-        return (List<Contact>) contactRepo.findAll();
+    public List<ContactModel> getAllContacts() {
+
+        return util.mapList((List<Contact>) contactRepo.findAll(), ContactModel.class);
     }
 
     @Override
-    public Contact addContact(Contact contact) throws ConflictException {
-        System.out.println(contact.toString());
+    public ContactModel addContact(ContactModel contactModel) throws ConflictException {
+        //Ignore the incoming Id Field
+        contactModel.setContactId(0);
         List<Contact> fromDb = (List<Contact>) contactRepo.findAll();
-        if (!isDuplicate(fromDb, contact)) return contactRepo.save(contact);
-        throw new ConflictException("Already Exists!!");
+        Contact contact = mapper.map(contactModel, Contact.class);
+        if (isDuplicate(fromDb, contact)) throw new ConflictException("Already Exists!!");
+
+        contact = contactRepo.save(contact);
+        List<PhoneNumber> phoneNumbers = new ArrayList<>();
+        for (PhoneNumberModel phn : contactModel.getPhoneNumber()) {
+            PhoneNumber phoneNumber = new PhoneNumber();
+            phoneNumber.setPhoneNumber(phn.getPhoneNumber());
+            phoneNumber.setPhoneNumberType(phn.getPhoneNumberType());
+            phoneNumber.setContact(contact);
+            phoneNumbers.add(phoneNumber);
+        }
+        phoneNumbers = (List<PhoneNumber>) phoneNumberRepo.saveAll(phoneNumbers);
+        contactModel = mapper.map(contact, ContactModel.class);
+        List<PhoneNumberModel> phoneNumberModels = util.mapList(phoneNumbers, PhoneNumberModel.class);
+        contactModel.setPhoneNumber(phoneNumberModels);
+
+        return contactModel;
     }
 
     @Override
-    public Contact updateContact(Contact contact) throws ResourceNotFoundException, ConflictException {
-        Contact contactFromDb = contactRepo.findById(contact.getId());
-        if (contactFromDb == null) throw new ResourceNotFoundException("No contacts found for id : " + contact.getId());
-        List<Contact> fromDb = (List<Contact>) contactRepo.findAll();
-        if (isDuplicate(fromDb, contact)) throw new ConflictException("Already Esists!");
-        if (!Strings.isNullOrEmpty(contact.getFirstName())) contactFromDb.setFirstName(contact.getFirstName());
-        if (!Strings.isNullOrEmpty(contact.getLastName())) contactFromDb.setLastName(contact.getLastName());
-        if (!Strings.isNullOrEmpty(contact.getEmail())) contactFromDb.setEmail(contact.getEmail());
-        if (!Strings.isNullOrEmpty(contact.getPhoneNumber())) contactFromDb.setPhoneNumber(contact.getPhoneNumber());
-        contactFromDb = contactRepo.save(contactFromDb);
-        return contactFromDb;
+    public ContactModel updateContact(ContactModel contactModel) throws ResourceNotFoundException {
+        Contact contactFromDb = contactRepo.findById(contactModel.getContactId());
+        if (contactFromDb == null) throw new ResourceNotFoundException("No contacts found for id : " + contactModel.getContactId());
+
+        Contact toSave = new Contact(contactFromDb.getContactId(), contactFromDb.getFirstName(), contactFromDb.getLastName(), contactFromDb.getEmail());
+        toSave.setPhoneNumber(contactFromDb.getPhoneNumber());
+        if (!Strings.isNullOrEmpty(contactModel.getFirstName())) toSave.setFirstName(contactModel.getFirstName());
+        if (!Strings.isNullOrEmpty(contactModel.getLastName())) toSave.setLastName(contactModel.getLastName());
+        if (!Strings.isNullOrEmpty(contactModel.getEmail())) toSave.setEmail(contactModel.getEmail());
+        toSave = contactRepo.save(toSave);
+
+        // Remove if not present:
+        List<PhoneNumber> fromDb = phoneNumberRepo.findByContact(contactFromDb);
+        for(PhoneNumber pn : fromDb){
+                phoneNumberRepo.deleteById(pn.getPhoneNumberId());
+        }
+
+        for (PhoneNumberModel pm : contactModel.getPhoneNumber()) {
+            PhoneNumber pn = new PhoneNumber();
+            pn.setPhoneNumber(pm.getPhoneNumber());
+            pn.setPhoneNumberType(pm.getPhoneNumberType());
+            pn.setContact(toSave);
+            phoneNumberRepo.save(pn);
+        }
+
+        toSave.setPhoneNumber(phoneNumberRepo.findByContact(contactFromDb));
+
+        return mapper.map(toSave, ContactModel.class);
     }
 
     @Override
-    public List<Contact> getContactsByFirstName(String firstName) {
-        return contactRepo.findByFirstNameIgnoreCase(firstName);
+    public List<ContactModel> getContactsByFirstName(String firstName) {
+        return util.mapList(contactRepo.findByFirstNameIgnoreCase(firstName), ContactModel.class);
     }
 
     @Override
-    public List<Contact> getContactsByLastName(String lastName) {
-        return contactRepo.findByLastNameIgnoreCase(lastName);
+    public List<ContactModel> getContactsByLastName(String lastName) {
+        return util.mapList(contactRepo.findByLastNameIgnoreCase(lastName), ContactModel.class);
     }
 
     @Override
-    public List<Contact> getContactsByEmail(String email) {
-        return contactRepo.findByEmailIgnoreCase(email);
+    public List<ContactModel> getContactsByEmail(String email) {
+
+        return util.mapList(contactRepo.findByEmailIgnoreCase(email), ContactModel.class);
     }
 
     @Override
     public void deleteAllTemp() {
-
-        List<Contact> list1 = contactRepo.findByLastNameIgnoreCase("Da");
-        List<Contact> list2 = contactRepo.findByFirstNameIgnoreCase("WorlPOOL");
-        List<Contact> list3 = contactRepo.findByLastNameAndFirstNameAllIgnoreCase("WashING", "WorlPOOL");
-        List<Contact> list4 = contactRepo.findByLastNameOrFirstNameAllIgnoreCase("BanerJEE", "WorlPOOL");
-        List<Contact> list5 = contactRepo.findByEmailIgnoreCase("SANDIP@testEmail.COM");
-        List<Contact> list6 = contactRepo.findByEmailContainingIgnoreCase("email");
-        List<Contact> list7 = contactRepo.findByFirstNameContainingIgnoreCase("z");
-        List<Contact> list8 = contactRepo.findByLastNameContainingIgnoreCase("ER");
-      
+        phoneNumberRepo.deleteAll();
         contactRepo.deleteAll();
     }
 
-    @Override
-    public void deleteMultiple(List<Contact> contacts) throws CustomGeneralException {
-        try {
-            contactRepo.deleteAll(contacts);
-        } catch (RuntimeException ex) {
-            throw new CustomGeneralException("Sql Exception happened!");
-        }
-    }
 
     @Override
     public void deleteContact(long id) throws ResourceNotFoundException {
-        try {
-            contactRepo.deleteById(id);
-        }
-        catch(Exception ex) {
-            throw new ResourceNotFoundException("No contacts found for id : " + id);
-        }
+
+        Contact contact = contactRepo.findById(id);
+        if (contact == null) throw new ResourceNotFoundException("No contacts found for id : " + id);
+
+        List<PhoneNumber> phones = phoneNumberRepo.findByContact(contact);
+
+        phoneNumberRepo.deleteAll(phones);
+        contactRepo.delete(contact);
     }
 
     @Override
-    public Contact getContact(long id) throws ResourceNotFoundException {
+    public ContactModel getContact(long id) throws ResourceNotFoundException {
         Contact con = contactRepo.findById(id);
         if (con == null) throw new ResourceNotFoundException("No contacts found for id : " + id);
-        return con;
+        return mapper.map(con, ContactModel.class);
     }
 
     @Override
-    public List<Contact> search(String value) {
+    public List<ContactModel> search(String value) {
 
         List<Contact> contacts = new ArrayList<>();
         List<Contact> contactsEmail = contactRepo.findByEmailContainingIgnoreCase(value);
         contactsEmail.addAll(contactRepo.findByFirstNameContainingIgnoreCase(value));
         contactsEmail.addAll(contactRepo.findByLastNameContainingIgnoreCase(value));
-        contactsEmail.addAll(contactRepo.findByPhoneNumberContainingIgnoreCase(value));
+        List<PhoneNumber> phones = phoneNumberRepo.findByPhoneNumberContainingIgnoreCase(value);
+        for (PhoneNumber phn : phones)
+            contactsEmail.add(contactRepo.findById(phn.getContact().getContactId()));
         for (Contact con : contactsEmail) {
             if(!isDuplicate(contacts, con))
                 contacts.add(con);
         }
-        return contacts;
+        return util.mapList(contacts, ContactModel.class);
 
     }
 }

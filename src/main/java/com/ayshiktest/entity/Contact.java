@@ -4,9 +4,13 @@ import org.dozer.Mapping;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
-@Table(name = "contacts")
+@Table(name = "contact")
 public class Contact implements Serializable {
 
     /**
@@ -15,32 +19,33 @@ public class Contact implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
-    private long id;
+    @GeneratedValue(generator = "contact_id_seq", strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(name = "contact_id_seq", sequenceName = "contact_id_seq")
+    @Column(name = "contactId")
+    private long contactId;
 
-    @Column(name = "first_name", nullable = false)
+    @Column(nullable = false)
     private String firstName;
 
-    @Column(name = "last_name")
+    @Column()
     private String lastName;
 
-    @Column(name = "phone_number")
-    private String phoneNumber;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "contact")
+    private List<PhoneNumber> phoneNumber = new ArrayList<>();
 
-    @Column(name = "email")
+    @Column()
     private String email = "NA";
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
     }
 
-    public long getId() {
-        return id;
+    public long getContactId() {
+        return contactId;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setContactId(long contactId) {
+        this.contactId = contactId;
     }
 
     public String getFirstName() {
@@ -59,11 +64,11 @@ public class Contact implements Serializable {
         this.lastName = lastName;
     }
 
-    public String getPhoneNumber() {
+    public List<PhoneNumber> getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
+    public void setPhoneNumber(List<PhoneNumber> phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
@@ -75,22 +80,22 @@ public class Contact implements Serializable {
         this.email = email;
     }
 
-    public Contact() { }
+    public Contact() {
+    }
 
-    public Contact(String firstName, String lastName, String phoneNumber, String email) {
+    public Contact(long contactId, String firstName, String lastName, String email) {
+        this.contactId = contactId;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.phoneNumber = phoneNumber;
         this.email = email;
     }
 
     @Override
     public String toString() {
         return "Contact{" +
-                "id=" + id +
+                "contactId=" + contactId +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
                 ", email='" + email + '\'' +
                 '}';
     }

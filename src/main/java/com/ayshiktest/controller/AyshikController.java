@@ -7,6 +7,7 @@ import com.ayshiktest.exception.ConflictException;
 import com.ayshiktest.exception.CustomGeneralException;
 import com.ayshiktest.exception.ResourceNotFoundException;
 import com.ayshiktest.model.ContactCsv;
+import com.ayshiktest.model.ContactModel;
 import com.ayshiktest.repo.ContactRepo;
 import com.ayshiktest.service.IAyshikService;
 import com.ayshiktest.util.AyshikUtil;
@@ -36,40 +37,35 @@ public class AyshikController {
      ContactRepo contactRepo;
 
 	@PostMapping("/upload")
-	public List<ContactCsv> fileRead(@RequestBody MultipartFile file) throws CustomGeneralException {
-
-		List<Contact> contactsList = ayshikService.fileRead(file);
-		List<ContactCsv> contacts = util.mapList(contactsList, ContactCsv.class);
-		return contacts;
+	public List<ContactModel> fileRead(@RequestBody MultipartFile file) throws CustomGeneralException {
+		List<ContactModel> contactsList = ayshikService.fileRead(file);
+		return contactsList;
 	}
 
 	@GetMapping("/getContact/{id}")
-	public ContactCsv getContact(@PathVariable long id) throws ResourceNotFoundException {
-		return mapper.map(ayshikService.getContact(id), ContactCsv.class);
+	public ContactModel getContact(@PathVariable long id) throws ResourceNotFoundException {
+		return ayshikService.getContact(id);
 	}
 
 	@GetMapping("/getAllContacts")
-	public List<ContactCsv> getAllContacts() {
-		return util.mapList(ayshikService.getAllContacts(), ContactCsv.class);
+	public List<ContactModel> getAllContacts() {
+		return ayshikService.getAllContacts();
 	}
 
 	@PostMapping("/addContact")
-	public ContactCsv addContact(@RequestBody ContactCsv contactCsv) throws ConflictException, CustomGeneralException {
-		if (contactCsv.allPropertiesNull()) throw new CustomGeneralException("All values should not be null.");
-		Contact contact = mapper.map(contactCsv, Contact.class);
-		contact = ayshikService.addContact(contact);
-		contactCsv = mapper.map(contact, ContactCsv.class);
-		return contactCsv;
+	public ContactModel addContact(@RequestBody ContactModel contactModel) throws ConflictException, CustomGeneralException {
+		util.validateIncomingPhoneNumberList(contactModel.getPhoneNumber());
+		return ayshikService.addContact(contactModel);
 	}
 
 	@GetMapping("/getContactsByFirstName")
-	public List<ContactCsv> getContactsByFirstName(@RequestParam("firstName") String firstName) {
-		return util.mapList(ayshikService.getContactsByFirstName(firstName), ContactCsv.class);
+	public List<ContactModel> getContactsByFirstName(@RequestParam("firstName") String firstName) {
+		return ayshikService.getContactsByFirstName(firstName);
 	}
 
 	@GetMapping("/getContactsByLastName")
-	public List<ContactCsv> getContactsByLastName(@RequestParam("lastName") String lastName) {
-		return util.mapList(ayshikService.getContactsByLastName(lastName), ContactCsv.class);
+	public List<ContactModel> getContactsByLastName(@RequestParam("lastName") String lastName) {
+		return ayshikService.getContactsByLastName(lastName);
 
 	}
 
@@ -86,89 +82,13 @@ public class AyshikController {
 	}
 
 	@PutMapping("/updateContact")
-	public ContactCsv updateContact(@RequestBody ContactCsv contactCsv) throws ResourceNotFoundException, ConflictException {
-		Contact contact = mapper.map(contactCsv, Contact.class);
-		contact = ayshikService.updateContact(contact);
-		contactCsv = mapper.map(contact, ContactCsv.class);
-		return contactCsv;
+	public ContactModel updateContact(@RequestBody ContactModel contactModel) throws ResourceNotFoundException, ConflictException, CustomGeneralException {
+		util.validateIncomingPhoneNumberList(contactModel.getPhoneNumber());
+		return ayshikService.updateContact(contactModel);
 	}
 
 	@GetMapping("/search")
-	public List<ContactCsv> search(@RequestParam("value") String value) {
-		return util.mapList(ayshikService.search(value), ContactCsv.class);
+	public List<ContactModel> search(@RequestParam("value") String value) {
+		return ayshikService.search(value);
 	}
-
-	@DeleteMapping("/deleteMultiple")
-	public ResponseEntity<Void> deleteMultiple(@RequestParam List<Long> contactIds) throws CustomGeneralException {
-		List<Contact> cons = (List<Contact>) contactRepo.findAllById(contactIds);
-		ayshikService.deleteMultiple(cons);
-		return new ResponseEntity<Void>(HttpStatus.valueOf(204));
-	}
-
-	 /*
-	 @PostMapping("/addContacts")
-	 public Contact addContact(@RequestBody Contact contact){
-	 	if(contact.getEmail() == null || contact.getEmail().trim().isEmpty()) contact.setEmail("NA");
-		 contact = contactRepo.save(contact);
-	 	return contact;
-	 }
-
-	@GetMapping("/getAllcontacts")
-	public List<Contact> getAllcontacts(){
-		List<Contact> contacts= (List<Contact>) contactRepo.findAll();
-		return contacts;
-	}
-
-	  List<AyshikModel> models = new ArrayList<AyshikModel>();
-
-	  @GetMapping("/hello") public String helloworld() {
-
-	  return "Hello World!!"; }
-
-	  @GetMapping("/getAyshikModel") public AyshikModel getAyshikModel() {
-
-	  return new AyshikModel("Ayshik","BCA806", "Howrah"); }
-
-	  @GetMapping("/hello/{myName}") public String hello(@PathVariable(name =
-	  "myName", required = true) String name) {
-	  	return "Hello!! " + name; } //Sending data between URls
-
-	  @PostMapping("/hello") public AyshikModel addData(@RequestBody AyshikModel
-	  ayshikModel) {
-
-	  models.add(ayshikModel);
-
-	  return ayshikModel; }
-
-	  @GetMapping("/hello/search") public AyshikModel
-	  searchDataByName(@RequestParam(name = "name", required = false) String name)
-	  throws Exception {
-
-	  for(AyshikModel model : models) { if(model.getName().equalsIgnoreCase(name))
-	  { return model; } } throw new Exception("Could not Find!!"); }
-
-	/*
-	@Autowired
-	StudentRepo studentRepo;
-	
-	@PostMapping()
-	public Student create(@RequestBody Student student) {
-		
-		return studentRepo.save(student);
-	}
-	
-	@GetMapping()
-	public List<Student> getAllStudents(){
-		
-		return (List<Student>)studentRepo.findAll();
-	}
-	
-	@GetMapping("/search")
-	public List<Student> searchAllStudents(@RequestParam(name = "add", required = false) String add){
-		
-		
-		return studentRepo.findByAddress(add);
-	}
-	*/
-	
 }
